@@ -1,0 +1,9 @@
+{
+	"name": "covid-reporting-ubb",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "4ec68a94-791d-40f8-bbdb-a9ed4b9f1ae8",
+		"tenantId": "6ff374f5-e3eb-4c6f-b7b5-5091640937f8"
+	}
+}
