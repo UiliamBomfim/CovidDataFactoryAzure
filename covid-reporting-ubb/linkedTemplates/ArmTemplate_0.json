@@ -18,6 +18,10 @@
 		"ls_adls_covidreportingdl2_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://covidreportingsadl2.dfs.core.windows.net"
+		},
+		"tr-ingestion_population_data_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/0cb437f5-d75f-4324-82e1-9294f3fa14f1/resourceGroups/covid-reporting-rg/providers/Microsoft.Storage/storageAccounts/covidreportingsabr"
 		}
 	},
 	"variables": {
@@ -50,6 +54,26 @@
 						"type": "SecureString",
 						"value": "[parameters('ls_adls_covidreportingdl2_accountKey')]"
 					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tr-ingestion_population_data')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/population/blobs/population_by_age.tsv.gz",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('tr-ingestion_population_data_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
 				}
 			},
 			"dependsOn": []
@@ -275,9 +299,16 @@
 									]
 								},
 								{
-									"name": "Delete1",
+									"name": "DeleteSource File",
 									"type": "Delete",
-									"dependsOn": [],
+									"dependsOn": [
+										{
+											"activity": "Copy Population Data",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
 									"policy": {
 										"timeout": "7.00:00:00",
 										"retry": 0,
@@ -287,7 +318,17 @@
 									},
 									"userProperties": [],
 									"typeProperties": {
-										"enableLogging": true
+										"dataset": {
+											"referenceName": "ds_population_raw_gz",
+											"type": "DatasetReference",
+											"parameters": {}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										}
 									}
 								}
 							]
